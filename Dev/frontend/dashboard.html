@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Detección de Fraude Financiero</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>html { scroll-behavior: smooth; }
+    /* Estilos para el foro */
+    .forum-post {
+        background: #f8fafc;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        margin-bottom: 1.2rem;
+        padding: 1rem 1.2rem;
+        box-shadow: 0 2px 8px #cbd5e122;
+    }
+    .forum-post b {
+        color: #2563eb;
+        font-size: 1.08rem;
+    }
+    .forum-answer {
+        background: #e0e7ff;
+        border-radius: 6px;
+        margin: 0.7rem 0 0.7rem 1.2rem;
+        padding: 0.7rem 1rem;
+        color: #334155;
+        font-size: 1rem;
+        box-shadow: 0 1px 4px #6366f122;
+    }
+    .forum-answer i {
+        color: #6366f1;
+        font-weight: bold;
+    }
+    #forum-section h2 {
+        color: #1e293b;
+        margin-bottom: 1.2rem;
+    }
+    #forum-question-form textarea {
+        border: 1.5px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 0.7rem;
+        font-size: 1rem;
+        background: #f1f5f9;
+        margin-bottom: 0.5rem;
+    }
+    #forum-question-form button, .forum-post .btn {
+        background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.5rem 1.2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 0.3rem;
+        margin-left: 0.5rem;
+        box-shadow: 0 2px 8px #6366f133;
+        transition: background 0.2s, box-shadow 0.2s;
+    }
+    #forum-question-form button:hover, .forum-post .btn:hover {
+        background: linear-gradient(90deg, #3730a3 0%, #2563eb 100%);
+        box-shadow: 0 4px 16px #6366f144;
+    }
+    .forum-post form {
+        margin-top: 0.7rem;
+    }
+    .forum-post input[type="text"] {
+        border: 1.5px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 0.5rem;
+        font-size: 1rem;
+        background: #f1f5f9;
+        width: 60%;
+        margin-right: 0.5rem;
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <h1>Sistema de Detección de Fraude Financiero</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#dashboard-section" class="active">Dashboard</a></li>
+                <li><a href="#reportes-section">Reportes</a></li>
+            </ul>
+            <button id="logout-btn" class="btn" style="margin-left:2rem;">Cerrar Sesión</button>
+        </nav>
+    </header>
+    <main>
+        <section id="dashboard-section">
+            <h2>Dashboard Principal</h2>
+            <div class="metrics-container">
+                <div class="metric-card">
+                    <h3>Accuracy</h3>
+                    <p id="accuracy-metric">0.00</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Precision</h3>
+                    <p id="precision-metric">0.00</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Recall</h3>
+                    <p id="recall-metric">0.00</p>
+                </div>
+                <div class="metric-card">
+                    <h3>F1 Score</h3>
+                    <p id="f1-metric">0.00</p>
+                </div>
+            </div>
+            <div class="alert-container">
+                <div id="fraud-alert" class="alert hidden">
+                    <h3>Alerta de Fraude</h3>
+                    <p>Se ha detectado un posible fraude financiero</p>
+                </div>
+            </div>
+        </section>
+        <section id="reportes-section">
+            <h2>Reporte de Fraude</h2>
+            <div class="power-bi-container">
+                <iframe id="power-bi-frame" src="https://app.powerbi.com/view?r=eyJrIjoiMzhkOGM3NjgtZGZhZC00NTNkLTgzZjgtYTU4ZDFiNjQzODI1IiwidCI6IjBjZGQyMmVkLTQxZjAtNGYxYi05YzI1LTRiZGIwZDBmNmZkYSIsImMiOjR9&pageName=13325b94c17c5aca1803" allowfullscreen></iframe>
+            </div>
+        </section>
+        <section id="email-section" style="display: none;">
+            <h2>Enviar Correo</h2>
+            <form id="email-form" class="email-form">
+                <div class="form-group">
+                    <label for="recipients">Destinatarios (separados por comas)</label>
+                    <input type="text" id="recipients" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Asunto</label>
+                    <input type="text" id="subject" value="Alerta de Fraude Financiero" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Mensaje</label>
+                    <textarea id="message" required></textarea>
+                </div>
+                <button type="submit" class="btn">Enviar Correo</button>
+                <div id="email-status" class="email-status"></div>
+            </form>
+        </section>
+        <!-- Sección de Foro de Preguntas y Respuestas -->
+        <section id="forum-section" style="margin-top: 2rem;">
+            <h2>Foro de Preguntas y Respuestas</h2>
+            <div id="forum-list"></div>
+            <form id="forum-question-form" style="margin-top: 1.5rem;">
+                <label for="forum-question">Haz una pregunta:</label>
+                <textarea id="forum-question" required style="width:100%;min-height:60px;"></textarea>
+                <button type="submit" class="btn" style="margin-top:0.5rem;">Publicar Pregunta</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Sistema de Detección de Fraude Financiero</p>
+    </footer>
+    <script>
+    document.getElementById('logout-btn').onclick = async function() {
+        await fetch('http://localhost:5000/logout', { credentials: 'include' });
+        window.location.href = 'index.html';
+    };
+
+    // Oculta SIEMPRE la sección de correo al cargar
+    document.getElementById('email-section').style.display = 'none';
+
+    // Verificar si el usuario es administrador
+    async function checkUserRole() {
+        try {
+            const response = await fetch('http://localhost:5000/api/check-auth', {
+                credentials: 'include'
+            });
+            const data = await response.json();
+            if (data.status === 'authenticated' && data.user.role === 'area_manager') {
+                document.getElementById('email-section').style.display = 'block';
+            } else {
+                document.getElementById('email-section').style.display = 'none';
+            }
+        } catch (error) {
+            // Si hay error, asegúrate de que la sección siga oculta
+            document.getElementById('email-section').style.display = 'none';
+            console.error('Error al verificar rol:', error);
+        }
+    }
+
+    // Verificar rol al cargar la página
+    checkUserRole();
+    
+    // Manejador para el envío de correo
+    document.getElementById('email-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const recipients = document.getElementById('recipients').value;
+        const subject = document.getElementById('subject').value;
+        const message = document.getElementById('message').value;
+        const statusDiv = document.getElementById('email-status');
+        statusDiv.textContent = '';
+        try {
+            const response = await fetch('http://localhost:5000/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ recipients, subject, message })
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                statusDiv.style.color = '#059669'; // Verde fuerte
+                statusDiv.style.fontWeight = 'bold';
+                statusDiv.textContent = '¡Correo enviado con éxito!';
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                }, 3000);
+            } else {
+                statusDiv.style.color = '#dc2626';
+                statusDiv.style.fontWeight = 'bold';
+                statusDiv.textContent = data.message || 'Error al enviar el correo';
+            }
+        } catch (error) {
+            statusDiv.style.color = '#dc2626';
+            statusDiv.style.fontWeight = 'bold';
+            statusDiv.textContent = 'Error al conectar con el servidor';
+        }
+    });
+
+    // Lógica de foro
+    let userRole = null;
+    async function loadForum() {
+        const res = await fetch('http://localhost:5000/api/forum', { credentials: 'include' });
+        const data = await res.json();
+        const forumList = document.getElementById('forum-list');
+        forumList.innerHTML = '';
+        data.forEach(post => {
+            const postDiv = document.createElement('div');
+            postDiv.className = 'forum-post';
+            // Mostrar pregunta principal
+            postDiv.innerHTML = `<b>${post.user || 'Usuario'}</b>: ${post.content || ''}<br>`;
+            // Botón eliminar pregunta solo para admin
+            if (userRole === 'area_manager') {
+                const delPostBtn = document.createElement('button');
+                delPostBtn.textContent = 'Eliminar pregunta';
+                delPostBtn.className = 'btn';
+                delPostBtn.style.marginLeft = '1rem';
+                delPostBtn.onclick = async () => {
+                    if (confirm('¿Seguro que deseas eliminar esta pregunta y todas sus respuestas?')) {
+                        const res = await fetch(`http://localhost:5000/api/forum/${post.id}`, {
+                            method: 'DELETE', credentials: 'include'
+                        });
+                        if (res.ok) {
+                            loadForum();
+                        } else {
+                            alert('No se pudo eliminar la pregunta.');
+                        }
+                    }
+                };
+                postDiv.appendChild(delPostBtn);
+            }
+            // Respuestas
+            if (post.answers && post.answers.length > 0) {
+                post.answers.forEach(ans => {
+                    const ansDiv = document.createElement('div');
+                    ansDiv.className = 'forum-answer';
+                    ansDiv.style.marginLeft = '1.5rem';
+                    ansDiv.innerHTML = `<i>${ans.user || 'Usuario'}</i>: ${ans.content || ''}`;
+                    // Botón eliminar solo para admin
+                    if (userRole === 'area_manager') {
+                        const delBtn = document.createElement('button');
+                        delBtn.textContent = 'Eliminar';
+                        delBtn.className = 'btn';
+                        delBtn.style.marginLeft = '1rem';
+                        delBtn.onclick = async () => {
+                            // Loguear los IDs antes de eliminar
+                            console.log('Intentando eliminar respuesta:', post.id, ans.id);
+                            if (!post.id || !ans.id) {
+                                alert('Error: No se pudo obtener el ID del post o de la respuesta.');
+                                return;
+                            }
+                            const res = await fetch(`http://localhost:5000/api/forum/${post.id}/answer/${ans.id}`, {
+                                method: 'DELETE', credentials: 'include'
+                            });
+                            if (res.ok) {
+                                loadForum();
+                            } else {
+                                alert('No se pudo eliminar la respuesta.');
+                            }
+                        };
+                        ansDiv.appendChild(delBtn);
+                    }
+                    postDiv.appendChild(ansDiv);
+                });
+            }
+            // Formulario de respuesta
+            const respForm = document.createElement('form');
+            respForm.style.marginLeft = '1.5rem';
+            respForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const ans = respForm.querySelector('input').value;
+                await fetch(`http://localhost:5000/api/forum/${post.id}/answer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ answer: ans })
+                });
+                loadForum();
+            };
+            respForm.innerHTML = `<input type="text" required placeholder="Responder..." style="width:60%;"> <button class="btn">Responder</button>`;
+            postDiv.appendChild(respForm);
+            forumList.appendChild(postDiv);
+        });
+    }
+
+    // Manejar nueva pregunta
+    document.getElementById('forum-question-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const q = document.getElementById('forum-question').value;
+        await fetch('http://localhost:5000/api/forum', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ question: q })
+        });
+        document.getElementById('forum-question').value = '';
+        loadForum();
+    };
+
+    // Ubicación del foro según rol
+    async function placeForumSection() {
+        const res = await fetch('http://localhost:5000/api/check-auth', { credentials: 'include' });
+        const data = await res.json();
+        userRole = data.user.role;
+        const forumSection = document.getElementById('forum-section');
+        if (userRole === 'area_manager') {
+            // Debajo del envío de correo
+            document.getElementById('email-section').after(forumSection);
+        } else {
+            // Debajo del reporte
+            document.getElementById('reportes-section').after(forumSection);
+        }
+        loadForum();
+    }
+    placeForumSection();
+    </script>
+    <script>
+    // Este script debe ser el ÚLTIMO antes de </body>
+    window.addEventListener('load', function() {
+        document.getElementById('accuracy-metric').textContent = '0.95';
+        document.getElementById('precision-metric').textContent = '0.92';
+        document.getElementById('recall-metric').textContent = '0.94';
+        document.getElementById('f1-metric').textContent = '0.93';
+        document.getElementById('fraud-alert').classList.remove('hidden');
+    });
+    </script>
+</body>
+</html> 

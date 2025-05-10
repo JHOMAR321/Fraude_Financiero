@@ -1,0 +1,18 @@
+[
+    {
+        "id": 1,
+        "username": "admin",
+        "password": "admin123",
+        "email": "admin@ejemplo.com",
+        "role": "area_manager",
+        "area": "Gerencia"
+    },
+    {
+        "id": 2,
+        "username": "usuario",
+        "password": "usuario123",
+        "email": "usuario@ejemplo.com",
+        "role": "user",
+        "area": "Finanzas"
+    }
+]
