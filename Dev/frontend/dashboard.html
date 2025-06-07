@@ -6,6 +6,8 @@
     <title>Sistema de Detección de Fraude Financiero</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>html { scroll-behavior: smooth; }
+    /* Ocultar sección de correo por defecto */
+    #email-section { display: none; }
     /* Estilos para el foro */
     .forum-post {
         background: #f8fafc;
@@ -157,73 +159,43 @@
         <p>&copy; 2024 Sistema de Detección de Fraude Financiero</p>
     </footer>
     <script>
+    let userRole = null;
+
     document.getElementById('logout-btn').onclick = async function() {
         await fetch('http://localhost:5000/logout', { credentials: 'include' });
-        window.location.href = 'index.html';
+        userRole = null;
+        document.getElementById('email-section').style.display = 'none';
+        window.location.replace('index.html');
     };
 
-    // Oculta SIEMPRE la sección de correo al cargar
-    document.getElementById('email-section').style.display = 'none';
-
-    // Verificar si el usuario es administrador
-    async function checkUserRole() {
+    // Verificar rol y cargar foro SOLO después de obtener el rol
+    async function checkUserRoleAndLoadForum() {
+        userRole = null;
+        document.getElementById('email-section').style.display = 'none';
         try {
-            const response = await fetch('http://localhost:5000/api/check-auth', {
-                credentials: 'include'
-            });
+            const response = await fetch('http://localhost:5000/api/check-auth', { credentials: 'include' });
             const data = await response.json();
-            if (data.status === 'authenticated' && data.user.role === 'area_manager') {
+            console.log('Respuesta de check-auth:', data); // DEPURACIÓN
+            userRole = data.user.role;
+            console.log('Rol detectado:', userRole); // DEPURACIÓN
+            // Mostrar sección de correo solo para admin
+            if (data.status === 'authenticated' && userRole === 'area_manager') {
                 document.getElementById('email-section').style.display = 'block';
+                const reportSection = document.getElementById('reportes-section');
+                const emailSection = document.getElementById('email-section');
+                if (reportSection && emailSection) {
+                    reportSection.after(emailSection);
+                }
             } else {
                 document.getElementById('email-section').style.display = 'none';
             }
+            loadForum();
         } catch (error) {
-            // Si hay error, asegúrate de que la sección siga oculta
             document.getElementById('email-section').style.display = 'none';
-            console.error('Error al verificar rol:', error);
         }
     }
 
-    // Verificar rol al cargar la página
-    checkUserRole();
-    
-    // Manejador para el envío de correo
-    document.getElementById('email-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const recipients = document.getElementById('recipients').value;
-        const subject = document.getElementById('subject').value;
-        const message = document.getElementById('message').value;
-        const statusDiv = document.getElementById('email-status');
-        statusDiv.textContent = '';
-        try {
-            const response = await fetch('http://localhost:5000/api/send-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ recipients, subject, message })
-            });
-            const data = await response.json();
-            if (data.status === 'success') {
-                statusDiv.style.color = '#059669'; // Verde fuerte
-                statusDiv.style.fontWeight = 'bold';
-                statusDiv.textContent = '¡Correo enviado con éxito!';
-                setTimeout(() => {
-                    statusDiv.textContent = '';
-                }, 3000);
-            } else {
-                statusDiv.style.color = '#dc2626';
-                statusDiv.style.fontWeight = 'bold';
-                statusDiv.textContent = data.message || 'Error al enviar el correo';
-            }
-        } catch (error) {
-            statusDiv.style.color = '#dc2626';
-            statusDiv.style.fontWeight = 'bold';
-            statusDiv.textContent = 'Error al conectar con el servidor';
-        }
-    });
-
     // Lógica de foro
-    let userRole = null;
     async function loadForum() {
         const res = await fetch('http://localhost:5000/api/forum', { credentials: 'include' });
         const data = await res.json();
@@ -232,7 +204,6 @@
         data.forEach(post => {
             const postDiv = document.createElement('div');
             postDiv.className = 'forum-post';
-            // Mostrar pregunta principal
             postDiv.innerHTML = `<b>${post.user || 'Usuario'}</b>: ${post.content || ''}<br>`;
             // Botón eliminar pregunta solo para admin
             if (userRole === 'area_manager') {
@@ -268,8 +239,6 @@
                         delBtn.className = 'btn';
                         delBtn.style.marginLeft = '1rem';
                         delBtn.onclick = async () => {
-                            // Loguear los IDs antes de eliminar
-                            console.log('Intentando eliminar respuesta:', post.id, ans.id);
                             if (!post.id || !ans.id) {
                                 alert('Error: No se pudo obtener el ID del post o de la respuesta.');
                                 return;
@@ -288,7 +257,7 @@
                     postDiv.appendChild(ansDiv);
                 });
             }
-            // Formulario de respuesta
+            // Formulario de respuesta (siempre visible para todos)
             const respForm = document.createElement('form');
             respForm.style.marginLeft = '1.5rem';
             respForm.onsubmit = async (e) => {
@@ -308,7 +277,6 @@
         });
     }
 
-    // Manejar nueva pregunta
     document.getElementById('forum-question-form').onsubmit = async function(e) {
         e.preventDefault();
         const q = document.getElementById('forum-question').value;
@@ -322,22 +290,37 @@
         loadForum();
     };
 
-    // Ubicación del foro según rol
-    async function placeForumSection() {
-        const res = await fetch('http://localhost:5000/api/check-auth', { credentials: 'include' });
-        const data = await res.json();
-        userRole = data.user.role;
-        const forumSection = document.getElementById('forum-section');
-        if (userRole === 'area_manager') {
-            // Debajo del envío de correo
-            document.getElementById('email-section').after(forumSection);
-        } else {
-            // Debajo del reporte
-            document.getElementById('reportes-section').after(forumSection);
+    document.getElementById('email-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const recipients = document.getElementById('recipients').value;
+        const subject = document.getElementById('subject').value;
+        const message = document.getElementById('message').value;
+        const statusDiv = document.getElementById('email-status');
+        statusDiv.textContent = '';
+        try {
+            const response = await fetch('http://localhost:5000/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ recipients, subject, message })
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                statusDiv.style.color = '#059669';
+                statusDiv.textContent = 'Correo enviado exitosamente';
+                this.reset();
+            } else {
+                statusDiv.style.color = '#dc2626';
+                statusDiv.textContent = data.message || 'Error al enviar el correo';
+            }
+        } catch (error) {
+            statusDiv.style.color = '#dc2626';
+            statusDiv.textContent = 'Error al conectar con el servidor';
         }
-        loadForum();
-    }
-    placeForumSection();
+    });
+
+    // Iniciar flujo
+    checkUserRoleAndLoadForum();
     </script>
     <script>
     // Este script debe ser el ÚLTIMO antes de </body>

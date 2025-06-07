@@ -25,7 +25,7 @@ app.config.from_object(Config)
 # Configurar CORS para permitir credenciales
 CORS(app, supports_credentials=True, resources={
     r"/*": {
-        "origins": ["http://localhost:8000"],
+        "origins": ["http://localhost:8000", "http://localhost:5000", "http://localhost:8080", "http://127.0.0.1:5000", "http://127.0.0.1:8000", "http://127.0.0.1:8080"],
         "methods": ["GET", "POST", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type"],
         "supports_credentials": True
@@ -40,13 +40,13 @@ mail = Mail(app)
 
 # Clase de Usuario
 class User(UserMixin):
-    def __init__(self, id, username, password, email, role, area):
+    def __init__(self, id, username, password, email, role, area=None):
         self.id = id
         self.username = username
         self.password = password
         self.email = email
         self.role = role
-        self.area = area
+        self.area = area  # Solo el admin tendrá área
 
     def is_area_manager(self):
         return self.role == 'area_manager'
@@ -64,10 +64,30 @@ def role_required(role):
 
 # Cargar usuarios desde JSON
 def load_users():
+    users = []
+    # Cargar administrador primero
+    if os.path.exists('admin.json'):
+        with open('admin.json', 'r') as f:
+            users.extend(json.load(f))
+    # Cargar usuarios generales después
     if os.path.exists('users.json'):
         with open('users.json', 'r') as f:
-            return json.load(f)
-    return []
+            users.extend(json.load(f))
+    return users
+
+# Guardar usuarios en JSON
+def save_users(users):
+    # Separar usuarios generales y admin
+    general_users = [user for user in users if user['role'] != 'area_manager']
+    admin_users = [user for user in users if user['role'] == 'area_manager']
+    
+    # Guardar usuarios generales
+    with open('users.json', 'w') as f:
+        json.dump(general_users, f)
+    
+    # Guardar administrador
+    with open('admin.json', 'w') as f:
+        json.dump(admin_users, f)
 
 # Cargar foro desde JSON
 def load_forum():
@@ -82,8 +102,8 @@ def save_forum(forum_data):
         json.dump(forum_data, f)
 
 # Crear usuario inicial si no existe
-if not os.path.exists('users.json'):
-    initial_users = [
+if not os.path.exists('admin.json'):
+    initial_admin = [
         {
             "id": 1,
             "username": "admin",
@@ -93,7 +113,14 @@ if not os.path.exists('users.json'):
             "area": "Gerencia"
         }
     ]
-    save_users(initial_users)
+    with open('admin.json', 'w') as f:
+        json.dump(initial_admin, f)
+
+# Crear archivo de usuarios generales si no existe
+if not os.path.exists('users.json'):
+    initial_users = []
+    with open('users.json', 'w') as f:
+        json.dump(initial_users, f)
 
 # Crear foro inicial si no existe
 if not os.path.exists('forum.json'):
@@ -159,13 +186,15 @@ def check_auth():
         'status': 'authenticated',
         'user': {
             'username': current_user.username,
-            'role': current_user.role
+            'role': current_user.role,
+            'area': current_user.area
         }
     })
 
 # Ruta para enviar correos
 @app.route('/api/send-email', methods=['POST'])
 @login_required
+@role_required('area_manager')
 def send_email():
     # Simulación: no se envía correo real
     return jsonify({

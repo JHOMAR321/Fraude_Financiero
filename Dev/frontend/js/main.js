@@ -24,58 +24,11 @@ async function checkAuth() {
 setInterval(checkAuth, 30000);
 
 // Verificar autenticación al cargar la página
+// (No agregar lógica de correo aquí, solo autenticación y funciones generales)
 document.addEventListener('DOMContentLoaded', async () => {
     const isAuthenticated = await checkAuth();
     if (!isAuthenticated) return;
-
-    // Cargar métricas
-    // const response = await fetch('http://localhost:5000/api/metrics', {
-    // const metrics = await response.json();
-    // document.getElementById('accuracy-metric').textContent = metrics.accuracy.toFixed(2);
-    // document.getElementById('precision-metric').textContent = metrics.precision.toFixed(2);
-    // document.getElementById('recall-metric').textContent = metrics.recall.toFixed(2);
-    // document.getElementById('f1-metric').textContent = metrics.f1.toFixed(2);
-
-    // Configurar el formulario de correo
-    const emailForm = document.getElementById('email-form');
-    if (emailForm) {
-        emailForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const recipients = document.getElementById('recipients').value.split(',').map(email => email.trim());
-            const subject = document.getElementById('subject').value;
-            const message = document.getElementById('message').value;
-            
-            try {
-                const response = await fetch('http://localhost:5000/api/send-email', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ recipients, subject, message })
-                });
-                
-                const result = await response.json();
-                const statusDiv = document.getElementById('email-status');
-                
-                if (response.ok) {
-                    statusDiv.textContent = 'Correo enviado exitosamente';
-                    statusDiv.style.color = 'green';
-                    emailForm.reset();
-                } else {
-                    statusDiv.textContent = `Error: ${result.message}`;
-                    statusDiv.style.color = 'red';
-                }
-            } catch (error) {
-                console.error('Error sending email:', error);
-                const statusDiv = document.getElementById('email-status');
-                statusDiv.textContent = 'Error al enviar el correo';
-                statusDiv.style.color = 'red';
-            }
-        });
-    }
+    // Aquí solo lógica general, no de correo
 });
 
 // URL del reporte de Power BI
@@ -129,45 +82,6 @@ async function fetchMetrics() {
     }
 }
 
-// Función para enviar correo
-async function sendEmail(event) {
-    event.preventDefault();
-    
-    const recipients = document.getElementById('recipients').value.split(',').map(email => email.trim());
-    const subject = document.getElementById('subject').value;
-    const message = document.getElementById('message').value;
-    
-    try {
-        const response = await fetch('/api/send-email', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                recipients,
-                subject,
-                message
-            })
-        });
-        
-        const data = await response.json();
-        const statusDiv = document.getElementById('email-status');
-        
-        if (data.status === 'success') {
-            statusDiv.textContent = 'Correo enviado exitosamente';
-            statusDiv.className = 'email-status success';
-            document.getElementById('email-form').reset();
-        } else {
-            statusDiv.textContent = 'Error al enviar el correo: ' + data.message;
-            statusDiv.className = 'email-status error';
-        }
-    } catch (error) {
-        const statusDiv = document.getElementById('email-status');
-        statusDiv.textContent = 'Error al enviar el correo: ' + error.message;
-        statusDiv.className = 'email-status error';
-    }
-}
-
 // Inicialización
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
@@ -177,10 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // checkForFraud(EXAMPLE_METRICS);
     // Intentar obtener valores reales del backend
     // fetchMetrics();
-    
-    // Agregar manejador de eventos para el formulario de correo
-    document.getElementById('email-form').addEventListener('submit', sendEmail);
-    
+    // No agregar lógica de correo aquí
     // Actualizar métricas cada 5 minutos
     // setInterval(fetchMetrics, 300000);
 }); 
