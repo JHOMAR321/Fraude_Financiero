@@ -5,77 +5,515 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Detección de Fraude Financiero</title>
     <link rel="stylesheet" href="css/styles.css">
-    <style>html { scroll-behavior: smooth; }
-    /* Ocultar sección de correo por defecto */
-    #email-section { display: none; }
-    /* Estilos para el foro */
-    .forum-post {
-        background: #f8fafc;
-        border: 1.5px solid #cbd5e1;
-        border-radius: 8px;
-        margin-bottom: 1.2rem;
-        padding: 1rem 1.2rem;
-        box-shadow: 0 2px 8px #cbd5e122;
-    }
-    .forum-post b {
-        color: #2563eb;
-        font-size: 1.08rem;
-    }
-    .forum-answer {
-        background: #e0e7ff;
-        border-radius: 6px;
-        margin: 0.7rem 0 0.7rem 1.2rem;
-        padding: 0.7rem 1rem;
-        color: #334155;
-        font-size: 1rem;
-        box-shadow: 0 1px 4px #6366f122;
-    }
-    .forum-answer i {
-        color: #6366f1;
-        font-weight: bold;
-    }
-    #forum-section h2 {
-        color: #1e293b;
-        margin-bottom: 1.2rem;
-    }
-    #forum-question-form textarea {
-        border: 1.5px solid #cbd5e1;
-        border-radius: 6px;
-        padding: 0.7rem;
-        font-size: 1rem;
-        background: #f1f5f9;
-        margin-bottom: 0.5rem;
-    }
-    #forum-question-form button, .forum-post .btn {
-        background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 0.5rem 1.2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        margin-top: 0.3rem;
-        margin-left: 0.5rem;
-        box-shadow: 0 2px 8px #6366f133;
-        transition: background 0.2s, box-shadow 0.2s;
-    }
-    #forum-question-form button:hover, .forum-post .btn:hover {
-        background: linear-gradient(90deg, #3730a3 0%, #2563eb 100%);
-        box-shadow: 0 4px 16px #6366f144;
-    }
-    .forum-post form {
-        margin-top: 0.7rem;
-    }
-    .forum-post input[type="text"] {
-        border: 1.5px solid #cbd5e1;
-        border-radius: 6px;
-        padding: 0.5rem;
-        font-size: 1rem;
-        background: #f1f5f9;
-        width: 60%;
-        margin-right: 0.5rem;
-    }
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        
+        /* Estilos para la página de bienvenida */
+        .welcome-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 3rem;
+        }
+        
+        .welcome-section h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .welcome-section p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        /* Estilos para la carga de Excel */
+        .excel-upload-section {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .excel-upload-section:hover {
+            border-color: #6366f1;
+            background: #f1f5f9;
+        }
+        
+        .excel-upload-section.dragover {
+            border-color: #6366f1;
+            background: #e0e7ff;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+        
+        /* Estilos para la previsualización */
+        .preview-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 1rem 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .preview-table-container:active {
+            cursor: grabbing;
+        }
+        
+        .preview-table {
+            width: 100%;
+            min-width: 800px;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin: 0;
+            font-size: 0.9rem;
+            background: white;
+        }
+        
+        .preview-table th,
+        .preview-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .preview-table th:last-child,
+        .preview-table td:last-child {
+            border-right: none;
+        }
+        
+        .preview-table th {
+            background: #1e40af;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .preview-table th:first-child {
+            border-top-left-radius: 8px;
+        }
+        
+        .preview-table th:last-child {
+            border-top-right-radius: 8px;
+        }
+        
+        .preview-table tr {
+            height: 70px;
+        }
+        
+        .preview-table tr:hover {
+            background: #f1f5f9;
+            transform: scale(1.005);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preview-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        .preview-table tr:nth-child(even):hover {
+            background: #e2e8f0;
+        }
+        
+        .preview-table tr:first-child {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .preview-table td {
+            color: #374151;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .preview-table td:first-child {
+            font-weight: 600;
+            color: #1f2937;
+            background: #f8fafc;
+        }
+        
+        .preview-table th {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        /* Scrollbar visible y funcional */
+        .preview-table-container::-webkit-scrollbar {
+            height: 12px;
+            background-color: #f5f5f5;
+            border-radius: 6px;
+        }
+        
+        .preview-table-container::-webkit-scrollbar-track {
+            background-color: #f5f5f5;
+            border-radius: 6px;
+        }
+        
+        .preview-table-container::-webkit-scrollbar-thumb {
+            background-color: #6366f1;
+            border-radius: 6px;
+            border: 2px solid #f5f5f5;
+        }
+        
+        .preview-table-container::-webkit-scrollbar-thumb:hover {
+            background-color: #4f46e5;
+        }
+        
+        /* Scrollbar para Firefox */
+        .preview-table-container {
+            scrollbar-width: auto;
+            scrollbar-color: #6366f1 #cbd5e1;
+        }
+        
+        /* Asegurar que solo la tabla tenga scroll horizontal */
+        .preview-section {
+            overflow: hidden;
+        }
+        
+        /* Contenedor principal sin scroll horizontal */
+        main {
+            overflow-x: hidden;
+        }
+        
+        /* Asegurar que el body no tenga scroll horizontal */
+        body {
+            overflow-x: hidden;
+        }
+        
+
+        
+        /* Indicador de scroll mejorado */
+        .scroll-indicator {
+            text-align: center;
+            color: #1e293b;
+            font-size: 1.1rem;
+            margin-top: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+            border-radius: 12px;
+            border: 3px solid #6366f1;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+        }
+        
+        /* Mejoras adicionales para la tabla */
+        .preview-table td {
+            position: relative;
+        }
+        
+        .preview-table td:hover {
+            background: #f3f4f6 !important;
+            cursor: pointer;
+        }
+        
+        .preview-table td:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            .preview-table-container {
+                font-size: 0.75rem;
+            }
+            
+            .preview-table th,
+            .preview-table td {
+                padding: 0.5rem 0.75rem;
+            }
+        }
+        
+        /* Estilos para el procesamiento */
+        .process-section {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .process-btn {
+            background: white;
+            color: #059669;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Estilos para los gráficos */
+        .charts-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .chart-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-card h3 {
+            color: #1e293b;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* Estilos para el reporte */
+        .report-section {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .download-btn {
+            background: white;
+            color: #d97706;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Ocultar sección de correo por defecto */
+        #email-section { display: none; }
+        
+        /* Estilos para el foro */
+        .forum-post {
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+            padding: 1rem 1.2rem;
+            box-shadow: 0 2px 8px #cbd5e122;
+        }
+        .forum-post b {
+            color: #2563eb;
+            font-size: 1.08rem;
+        }
+        .forum-answer {
+            background: #e0e7ff;
+            border-radius: 6px;
+            margin: 0.7rem 0 0.7rem 1.2rem;
+            padding: 0.7rem 1rem;
+            color: #334155;
+            font-size: 1rem;
+            box-shadow: 0 1px 4px #6366f122;
+        }
+        .forum-answer i {
+            color: #6366f1;
+            font-weight: bold;
+        }
+        #forum-section h2 {
+            color: #1e293b;
+            margin-bottom: 1.2rem;
+        }
+        #forum-question-form textarea {
+            border: 1.5px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 0.7rem;
+            font-size: 1rem;
+            background: #f1f5f9;
+            margin-bottom: 0.5rem;
+        }
+        #forum-question-form button, .forum-post .btn {
+            background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1.2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.3rem;
+            margin-left: 0.5rem;
+            box-shadow: 0 2px 8px #6366f133;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        #forum-question-form button:hover, .forum-post .btn:hover {
+            background: linear-gradient(90deg, #3730a3 0%, #2563eb 100%);
+            box-shadow: 0 4px 16px #6366f144;
+        }
+        .forum-post form {
+            margin-top: 0.7rem;
+        }
+        .forum-post input[type="text"] {
+            border: 1.5px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 0.5rem;
+            font-size: 1rem;
+            background: #f1f5f9;
+            width: 60%;
+            margin-right: 0.5rem;
+        }
+        
+        /* Estados de carga */
+        .loading {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        .analysis-results {
+            background: #8264ee;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-item {
+            margin: 10px 0;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-label {
+            font-weight: bold;
+            color: #444;
+            margin-right: 10px;
+        }
+
+        .stat-value {
+            color: #1a56db;
+            font-size: 1.1em;
+        }
+
+        .download-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .download-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        .success-message {
+            background: #10b981;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .error-message {
+            color: #dc2626;
+            padding: 10px;
+            background: #fee2e2;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -85,46 +523,112 @@
                 <h1>Sistema de Detección de Fraude Financiero</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="#dashboard-section" class="active">Dashboard</a></li>
-                <li><a href="#reportes-section">Reportes</a></li>
+                <li><a href="#welcome-section" class="active">Inicio</a></li>
+                <li><a href="#excel-section">Cargar Excel</a></li>
+                <li><a href="#charts-section">Análisis</a></li>
+                <li><a href="#report-section">Reporte</a></li>
             </ul>
             <button id="logout-btn" class="btn" style="margin-left:2rem;">Cerrar Sesión</button>
         </nav>
     </header>
+    
     <main>
-        <section id="dashboard-section">
-            <h2>Dashboard Principal</h2>
-            <div class="metrics-container">
-                <div class="metric-card">
-                    <h3>Accuracy</h3>
-                    <p id="accuracy-metric">0.00</p>
+        <!-- Sección de Bienvenida -->
+        <section id="welcome-section" class="welcome-section">
+            <h1>¡Bienvenido al Sistema de Detección de Fraude Financiero!</h1>
+            <p>
+                Este sistema utiliza Inteligencia Artificial e Inteligencia de Negocios para identificar 
+                y prevenir fraudes en transacciones financieras. Sube tu archivo Excel con datos de transacciones 
+                y obtén análisis detallados, predicciones de fraude y reportes completos con visualizaciones 
+                profesionales para tomar decisiones informadas.
+            </p>
+        </section>
+
+        <!-- Sección de Carga de Excel -->
+        <section id="excel-section">
+            <h2>Cargar Archivo Excel</h2>
+            <div class="excel-upload-section" id="upload-area">
+                <div class="file-input-wrapper">
+                    <input type="file" id="excel-file" class="file-input" accept=".xlsx" />
+                    <button class="upload-btn" onclick="document.getElementById('excel-file').click()">
+                        📁 Seleccionar Archivo Excel
+                    </button>
                 </div>
-                <div class="metric-card">
-                    <h3>Precision</h3>
-                    <p id="precision-metric">0.00</p>
-                </div>
-                <div class="metric-card">
-                    <h3>Recall</h3>
-                    <p id="recall-metric">0.00</p>
-                </div>
-                <div class="metric-card">
-                    <h3>F1 Score</h3>
-                    <p id="f1-metric">0.00</p>
-                </div>
+                <p style="margin-top: 1rem; color: #64748b;">
+                    Arrastra y suelta tu archivo Excel aquí o haz clic en el botón
+                </p>
+                <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 0.5rem;">
+                    Formatos soportados: .xlsx
+                </p>
             </div>
-            <div class="alert-container">
-                <div id="fraud-alert" class="alert hidden">
-                    <h3>Alerta de Fraude</h3>
-                    <p>Se ha detectado un posible fraude financiero</p>
+            
+            <div id="upload-status"></div>
+        </section>
+
+        <!-- Sección de Previsualización -->
+        <section id="preview-section" class="preview-section" style="display: none;">
+            <h2>Previsualización del Archivo</h2>
+            <div id="file-info"></div>
+            <div class="table-container">
+                <table class="preview-table" id="preview-table">
+                    <thead id="preview-headers"></thead>
+                    <tbody id="preview-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sección de Procesamiento -->
+        <section id="process-section" class="process-section" style="display: none;">
+            <h2>Procesar Datos con Modelo de IA</h2>
+            <p>Los datos han sido cargados exitosamente. Ahora puedes procesarlos con nuestro modelo de detección de fraude.</p>
+            <button class="process-btn" onclick="processData()">
+                🚀 Procesar con IA
+            </button>
+            <div id="process-status"></div>
+        </section>
+
+        <!-- Sección de Gráficos -->
+        <section id="charts-section" class="charts-section" style="display: none;">
+            <h2>Análisis de Fraude - Dashboard</h2>
+            <div class="chart-container">
+                <div class="chart-card">
+                    <h3>Distribución por Nivel de Riesgo</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Evolución Mensual de Fraudes</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Señales de Riesgo Más Frecuentes</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="signalsChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Perfil de Riesgo: Monto vs Probabilidad</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="scatterChart"></canvas>
+                    </div>
                 </div>
             </div>
         </section>
-        <section id="reportes-section">
-            <h2>Reporte de Fraude</h2>
-            <div class="power-bi-container">
-                <iframe id="power-bi-frame" src="https://app.powerbi.com/view?r=eyJrIjoiMzhkOGM3NjgtZGZhZC00NTNkLTgzZjgtYTU4ZDFiNjQzODI1IiwidCI6IjBjZGQyMmVkLTQxZjAtNGYxYi05YzI1LTRiZGIwZDBmNmZkYSIsImMiOjR9&pageName=13325b94c17c5aca1803" allowfullscreen></iframe>
-            </div>
+
+        <!-- Sección de Reporte -->
+        <section id="report-section" class="report-section" style="display: none;">
+            <h2>Reporte de Fraude Generado</h2>
+            <p>El análisis ha sido completado exitosamente. Descarga el reporte completo con todos los resultados.</p>
+            <a href="#" class="download-btn" id="download-report" onclick="downloadReport()">
+                📊 Descargar Reporte Excel
+            </a>
+            <div id="report-status"></div>
         </section>
+
+        <!-- Sección de Envío de Correo (solo para admin) -->
         <section id="email-section" style="display: none;">
             <h2>Enviar Correo</h2>
             <form id="email-form" class="email-form">
@@ -144,6 +648,7 @@
                 <div id="email-status" class="email-status"></div>
             </form>
         </section>
+
         <!-- Sección de Foro de Preguntas y Respuestas -->
         <section id="forum-section" style="margin-top: 2rem;">
             <h2>Foro de Preguntas y Respuestas</h2>
@@ -155,43 +660,610 @@
             </form>
         </section>
     </main>
+
     <footer>
         <p>&copy; 2024 Sistema de Detección de Fraude Financiero</p>
     </footer>
+
     <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('preview-table-container');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        container.addEventListener('mousedown', (e) => {
+            isDown = true;
+            container.style.cursor = 'grabbing';
+            startX = e.pageX - container.offsetLeft;
+            scrollLeft = container.scrollLeft;
+        });
+
+        container.addEventListener('mouseleave', () => {
+            isDown = false;
+            container.style.cursor = 'grab';
+        });
+
+        container.addEventListener('mouseup', () => {
+            isDown = false;
+            container.style.cursor = 'grab';
+        });
+
+        container.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - container.offsetLeft;
+            const walk = (x - startX) * 2; // Velocidad de deslizamiento
+            container.scrollLeft = scrollLeft - walk;
+        });
+    });
+
     let userRole = null;
+    let uploadedFile = null;
+    let processedStats = null;
 
-    document.getElementById('logout-btn').onclick = async function() {
-        await fetch('http://localhost:5000/logout', { credentials: 'include' });
-        userRole = null;
-        document.getElementById('email-section').style.display = 'none';
-        window.location.replace('index.html');
-    };
-
-    // Verificar rol y cargar foro SOLO después de obtener el rol
+    // Verificar rol y cargar foro
     async function checkUserRoleAndLoadForum() {
-        userRole = null;
-        document.getElementById('email-section').style.display = 'none';
-        try {
-            const response = await fetch('http://localhost:5000/api/check-auth', { credentials: 'include' });
-            const data = await response.json();
-            console.log('Respuesta de check-auth:', data); // DEPURACIÓN
-            userRole = data.user.role;
-            console.log('Rol detectado:', userRole); // DEPURACIÓN
-            // Mostrar sección de correo solo para admin
-            if (data.status === 'authenticated' && userRole === 'area_manager') {
-                document.getElementById('email-section').style.display = 'block';
-                const reportSection = document.getElementById('reportes-section');
-                const emailSection = document.getElementById('email-section');
-                if (reportSection && emailSection) {
-                    reportSection.after(emailSection);
-                }
+    try {
+        const response = await fetch('http://localhost:5000/api/check-auth', {
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        userRole = data.user?.role;
+
+        const emailSection = document.getElementById('email-section');
+        const excelSection = document.getElementById('excel-section');
+        const processSection = document.getElementById('process-section');
+        const chartsSection = document.getElementById('charts-section');
+        const reportSection = document.getElementById('report-section');
+
+        if (data.status === 'authenticated') {
+            if (userRole === 'area_manager') {
+                // Admin user
+                excelSection.style.display = 'block';
+                emailSection.style.display = 'block';
+                // Hide charts and report until data is processed
+                chartsSection.style.display = 'none';
+                reportSection.style.display = 'none';
             } else {
-                document.getElementById('email-section').style.display = 'none';
+                // Regular user
+                excelSection.style.display = 'none';
+                processSection.style.display = 'none';
+                emailSection.style.display = 'none';
+                reportSection.style.display = 'none'; // Ocultar la sección de reportes para usuarios regulares
+                
+                // Fetch and display latest stats
+                const statsResponse = await fetch('http://localhost:5000/api/latest-stats', { credentials: 'include' });
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    if (statsData.status === 'success') {
+                        processedStats = statsData.stats;
+                        chartsSection.style.display = 'block';
+                        showCharts();
+                    }
+                }
             }
-            loadForum();
+        }
+
+        await loadForum();
+    } catch (error) {
+        console.error('Error al verificar rol:', error);
+        const emailSection = document.getElementById('email-section');
+        if (emailSection) {
+            emailSection.style.display = 'none';
+        }
+    }
+    }
+
+    // Manejo de archivos Excel
+    document.getElementById('excel-file').addEventListener('change', handleFileSelect);
+    
+    // Drag and drop
+    const uploadArea = document.getElementById('upload-area');
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            handleFile(file);
+        }
+    }
+
+    function handleFile(file) {
+        if (!file.name.endsWith('.xlsx')) {
+            showMessage('Solo se permiten archivos Excel (.xlsx)', 'error');
+            return;
+        }
+
+        uploadedFile = file;
+        uploadFile(file);
+    }
+
+    async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            showMessage('Subiendo archivo...', 'info');
+            
+            const response = await fetch('http://localhost:5000/api/upload-excel', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                showMessage(data.message, 'success');
+                showPreview(data.preview, data.total_rows);
+                document.getElementById('process-section').style.display = 'block';
+            } else {
+                showMessage(data.message || 'Error al procesar el archivo', 'error');
+            }
         } catch (error) {
-            document.getElementById('email-section').style.display = 'none';
+            console.error('Error completo:', error);
+            showMessage(`Error al subir archivo: ${error.message}`, 'error');
+        }
+    }
+
+    function showPreview(previewData, totalRows) {
+    document.getElementById('preview-section').style.display = 'block';
+    
+    // Definir el orden específico de las columnas
+    const columnOrder = [
+        'id_cuenta',
+        'segmento_por_tipo_transaccion',
+        'proveedor_cuenta',
+        'tipo_billetera',
+        'estado_cuenta',
+        'perfil_cuenta',
+        'operador_movil',
+        'plan_movil',
+        'clasificacion_cliente_bcp',
+        'segmento_cliente_bcp',
+        'subsegmento_cliente_bcp',
+        'tipo_afiliacion',
+        'id_usuario',
+        'numero_telefono',
+        'fecha_afiliacion',
+        'fecha_desafiliacion',
+        'inclusion_financiera',
+        'micronegocio',
+        'lista_negra',
+        'version_app_yape',
+        'plataforma',
+        'modelo_dispositivo',
+        'fabricante_dispositivo',
+        'version_sistema_operativo',
+        'id_fecha',
+        'fecha',
+        'numero_mes',
+        'canal_pago',
+        'tipo_moneda',
+        'tipo_pago',
+        'ruta_pago',
+        'estado_pago',
+        'tipo_producto_yape',
+        'subtipo_producto_yape',
+        'cantidad_transacciones',
+        'monto_transacciones',
+        'promedio_monto_por_transaccion',
+        'riesgo_alto_volumen',
+        'dias_activo',
+        'riesgo_cuenta_nueva',
+        'riesgo_reafiliacion',
+        'riesgo_dispositivo_compartido',
+        'riesgo_telefono_compartido',
+        'riesgo_cliente_negativo',
+        'riesgo_lista_negra'
+    ];
+
+    // Crear los encabezados en el orden especificado
+    const headersRow = columnOrder.map(h => `<th>${h}</th>`).join('');
+    document.getElementById('preview-headers').innerHTML = `<tr>${headersRow}</tr>`;
+
+    // Crear las filas de datos en el mismo orden
+    const bodyRows = previewData.map((row, index) => {
+        const cells = columnOrder.map(h => {
+            let cellValue = row[h] || '';
+            
+            // Formatear fechas si es posible
+            if (cellValue && typeof cellValue === 'string' && cellValue.includes('GMT')) {
+                try {
+                    const date = new Date(cellValue);
+                    cellValue = date.toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    });
+                } catch (e) {
+                    // Si falla el parsing, mantener el valor original
+                }
+            }
+            
+            return `<td>${cellValue}</td>`;
+        }).join('');
+        
+        return `<tr>${cells}</tr>`;
+    }).join('');
+    
+    document.getElementById('preview-body').innerHTML = bodyRows;
+    }
+
+    async function processData() {
+        try {
+            if (!uploadedFile) {
+                showMessage('No hay archivo cargado para procesar', 'error');
+                return;
+            }
+
+            showMessage('Procesando datos con modelo de IA...', 'info');
+            document.getElementById('process-status').innerHTML = '<div class="loading">Analizando datos con el modelo de detección de fraude...</div>';
+            
+            const response = await fetch('http://localhost:5000/api/process-data', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                processedStats = data.stats; // Guardar las estadísticas
+                const resultsHtml = `
+                    <div class="analysis-results">
+                        <h3>Resultados del Análisis</h3>
+                        <p>Total de transacciones: ${data.stats.total_transacciones}</p>
+                        <p>Fraudes detectados: ${data.stats.fraudes_detectados}</p>
+                        <p>Porcentaje de fraude: ${data.stats.porcentaje_fraude.toFixed(2)}%</p>
+                    </div>
+                `;
+                document.getElementById('process-status').innerHTML = resultsHtml;
+                showMessage('Análisis completado con éxito', 'success');
+                
+                // Mostrar las otras secciones
+                document.getElementById('charts-section').style.display = 'block';
+                document.getElementById('report-section').style.display = 'block';
+                
+                // Renderizar los gráficos
+                showCharts();
+            } else {
+                throw new Error(data.message || 'Error al procesar los datos');
+            }
+        } catch (error) {
+            console.error('Error completo:', error);
+            document.getElementById('process-status').innerHTML = '';
+            showMessage(`Error al procesar datos: ${error.message}`, 'error');
+        }
+    }
+
+    function showCharts() {
+        document.getElementById('charts-section').style.display = 'block';
+        
+        // Gráfico 1: Distribución por Nivel de Riesgo
+        createRiskChart();
+        
+        // Gráfico 2: Evolución Mensual
+        createMonthlyChart();
+        
+        // Gráfico 3: Señales de Riesgo
+        createSignalsChart();
+        
+        // Gráfico 4: Scatter Plot
+        createScatterChart();
+    }
+
+    function createRiskChart() {
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        const data = processedStats.distribucion_riesgo;
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    data: Object.values(data),
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return `${context.label}: ${context.parsed} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createMonthlyChart() {
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        const data = processedStats.riesgo_mensual;
+        
+        const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        
+        const labels = Object.keys(data).map(num => months[parseInt(num) - 1] || `Mes ${num}`);
+        const values = Object.values(data);
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Fraudes Detectados',
+                    data: values,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createSignalsChart() {
+        const ctx = document.getElementById('signalsChart').getContext('2d');
+        const data = processedStats.señales_riesgo;
+        
+        const labels = Object.keys(data);
+        const values = Object.values(data);
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Cantidad',
+                    data: values,
+                    backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                    borderColor: '#6366f1',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createScatterChart() {
+        const ctx = document.getElementById('scatterChart').getContext('2d');
+        
+        // Usar datos reales del procesamiento
+        if (processedStats && processedStats.scatter_data) {
+            const data = processedStats.scatter_data;
+            
+            new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Transacciones',
+                        data: data,
+                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Monto de Transacción (S/)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Probabilidad de Fraude'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            // Datos simulados como fallback
+            const data = [];
+            for (let i = 0; i < 100; i++) {
+                data.push({
+                    x: Math.random() * 10000,
+                    y: Math.random(),
+                    r: Math.random() * 10 + 2
+                });
+            }
+            
+            new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Transacciones',
+                        data: data,
+                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Monto de Transacción (S/)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Probabilidad de Fraude'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    async function downloadReport() {
+        try {
+            const response = await fetch('http://localhost:5000/api/download-report', {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'reporte_fraude.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showMessage('Reporte descargado exitosamente', 'success');
+            } else {
+                const error = await response.json();
+                showMessage(error.message, 'error');
+            }
+        } catch (error) {
+            showMessage('Error al descargar reporte: ' + error.message, 'error');
+        }
+    }
+
+    function showMessage(message, type) {
+        const statusDiv = document.getElementById('upload-status');
+        const className = type === 'success' ? 'success-message' : 
+                        type === 'error' ? 'error-message' : 'info-message';
+        
+        statusDiv.innerHTML = `<div class="${className}">${message}</div>`;
+        
+        if (type === 'success') {
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
         }
     }
 
@@ -205,6 +1277,7 @@
             const postDiv = document.createElement('div');
             postDiv.className = 'forum-post';
             postDiv.innerHTML = `<b>${post.user || 'Usuario'}</b>: ${post.content || ''}<br>`;
+            
             // Botón eliminar pregunta solo para admin
             if (userRole === 'area_manager') {
                 const delPostBtn = document.createElement('button');
@@ -225,6 +1298,7 @@
                 };
                 postDiv.appendChild(delPostBtn);
             }
+            
             // Respuestas
             if (post.answers && post.answers.length > 0) {
                 post.answers.forEach(ans => {
@@ -232,6 +1306,7 @@
                     ansDiv.className = 'forum-answer';
                     ansDiv.style.marginLeft = '1.5rem';
                     ansDiv.innerHTML = `<i>${ans.user || 'Usuario'}</i>: ${ans.content || ''}`;
+                    
                     // Botón eliminar solo para admin
                     if (userRole === 'area_manager') {
                         const delBtn = document.createElement('button');
@@ -257,7 +1332,8 @@
                     postDiv.appendChild(ansDiv);
                 });
             }
-            // Formulario de respuesta (siempre visible para todos)
+            
+            // Formulario de respuesta
             const respForm = document.createElement('form');
             respForm.style.marginLeft = '1.5rem';
             respForm.onsubmit = async (e) => {
@@ -319,18 +1395,15 @@
         }
     });
 
+    document.getElementById('logout-btn').onclick = async function() {
+        await fetch('http://localhost:5000/logout', { credentials: 'include' });
+        userRole = null;
+        document.getElementById('email-section').style.display = 'none';
+        window.location.replace('index.html');
+    };
+
     // Iniciar flujo
     checkUserRoleAndLoadForum();
     </script>
-    <script>
-    // Este script debe ser el ÚLTIMO antes de </body>
-    window.addEventListener('load', function() {
-        document.getElementById('accuracy-metric').textContent = '0.95';
-        document.getElementById('precision-metric').textContent = '0.92';
-        document.getElementById('recall-metric').textContent = '0.94';
-        document.getElementById('f1-metric').textContent = '0.93';
-        document.getElementById('fraud-alert').classList.remove('hidden');
-    });
-    </script>
 </body>
-</html> 
+</html>
